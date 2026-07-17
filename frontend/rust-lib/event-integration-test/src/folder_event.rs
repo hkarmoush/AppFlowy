@@ -174,11 +174,26 @@ impl EventIntegrationTest {
   /// Orphan view: the parent_view_id equal to the view_id
   /// Normally, the orphan view will be created in nested database
   pub async fn create_orphan_view(&self, name: &str, view_id: &str, layout: ViewLayoutPB) {
+    self
+      .create_orphan_view_with_parent(name, view_id, None, layout)
+      .await;
+  }
+
+  /// Create an orphan view whose ancestor chain reports `parent_view_id` as
+  /// its parent, without adding it to that view's visible children.
+  pub async fn create_orphan_view_with_parent(
+    &self,
+    name: &str,
+    view_id: &str,
+    parent_view_id: Option<&str>,
+    layout: ViewLayoutPB,
+  ) {
     let payload = CreateOrphanViewPayloadPB {
       name: name.to_string(),
       layout,
       view_id: view_id.to_string(),
       initial_data: vec![],
+      parent_view_id: parent_view_id.map(|id| id.to_string()),
     };
     EventBuilder::new(self.clone())
       .event(FolderEvent::CreateOrphanView)

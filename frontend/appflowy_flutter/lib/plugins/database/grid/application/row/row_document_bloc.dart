@@ -18,13 +18,14 @@ part 'row_document_bloc.freezed.dart';
 class RowDocumentBloc extends Bloc<RowDocumentEvent, RowDocumentState> {
   RowDocumentBloc({
     required this.rowId,
-    required String viewId,
+    required this.viewId,
   })  : _rowBackendSvc = RowBackendService(viewId: viewId),
         super(RowDocumentState.initial()) {
     _dispatch();
   }
 
   final String rowId;
+  final String viewId;
   final RowBackendService _rowBackendSvc;
 
   void _dispatch() {
@@ -94,12 +95,13 @@ class RowDocumentBloc extends Bloc<RowDocumentEvent, RowDocumentState> {
     );
   }
 
-  Future<ViewPB?> _createRowDocumentView(String viewId) async {
+  Future<ViewPB?> _createRowDocumentView(String documentViewId) async {
     final result = await ViewBackendService.createOrphanView(
-      viewId: viewId,
+      viewId: documentViewId,
       name: LocaleKeys.menuAppHeader_defaultNewPageName.tr(),
       desc: '',
       layoutType: ViewLayoutPB.Document,
+      parentViewId: viewId,
     );
     return result.fold(
       (view) => view,
