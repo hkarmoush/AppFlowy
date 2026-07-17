@@ -7,6 +7,7 @@ import 'package:appflowy/plugins/document/application/document_appearance_cubit.
 import 'package:appflowy/plugins/document/presentation/editor_style.dart';
 import 'package:appflowy/shared/af_role_pb_extension.dart';
 import 'package:appflowy/shared/google_fonts_extension.dart';
+import 'package:appflowy/startup/tasks/app_window_size_manager.dart';
 import 'package:appflowy/util/font_family_extension.dart';
 import 'package:appflowy/workspace/application/appearance_defaults.dart';
 import 'package:appflowy/workspace/application/settings/appearance/appearance_cubit.dart';
@@ -14,6 +15,7 @@ import 'package:appflowy/workspace/application/settings/appearance/base_appearan
 import 'package:appflowy/workspace/application/settings/date_time/date_format_ext.dart';
 import 'package:appflowy/workspace/application/settings/date_time/time_format_ext.dart';
 import 'package:appflowy/workspace/application/settings/workspace/workspace_settings_bloc.dart';
+import 'package:appflowy/workspace/presentation/home/hotkeys.dart';
 import 'package:appflowy/workspace/presentation/home/menu/sidebar/space/shared_widget.dart';
 import 'package:appflowy/workspace/presentation/home/menu/sidebar/workspace/_sidebar_workspace_icon.dart';
 import 'package:appflowy/workspace/presentation/home/toast.dart';
@@ -117,6 +119,11 @@ class SettingsWorkspaceView extends StatelessWidget {
               SettingsCategory(
                 title: LocaleKeys.settings_workspacePage_appearance_title.tr(),
                 children: const [AppearanceSelector()],
+              ),
+              const VSpace(16),
+              SettingsCategory(
+                title: LocaleKeys.settings_workspacePage_appZoom_title.tr(),
+                children: const [_AppZoomSetting()],
               ),
               const VSpace(16),
               // const SettingsCategorySpacer(),
@@ -1292,6 +1299,91 @@ class _SelectionColorValueWidget extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _AppZoomSetting extends StatefulWidget {
+  const _AppZoomSetting();
+
+  @override
+  State<_AppZoomSetting> createState() => _AppZoomSettingState();
+}
+
+class _AppZoomSettingState extends State<_AppZoomSetting> {
+  final windowSizeManager = WindowSizeManager();
+
+  double _scaleFactor = 1.0;
+
+  @override
+  void initState() {
+    super.initState();
+    windowSizeManager.getScaleFactor().then((value) {
+      if (value != _scaleFactor && mounted) {
+        setState(() => _scaleFactor = value);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canZoomOut = _scaleFactor > WindowSizeManager.minScaleFactor;
+    final canZoomIn = _scaleFactor < WindowSizeManager.maxScaleFactor;
+
+    return SettingListTile(
+      label: LocaleKeys.settings_workspacePage_appZoom_label.tr(),
+      resetButtonKey: const Key('ZoomResetButton'),
+      onResetRequested: () => _setScale(1.0),
+      trailing: [
+        FlowyIconButton(
+          key: const Key('ZoomDecreaseButton'),
+          width: 24,
+          icon: FlowySvg(
+            FlowySvgs.minus_s,
+            color: Theme.of(context).iconTheme.color,
+            size: const Size.square(20),
+          ),
+          hoverColor: Theme.of(context).colorScheme.secondaryContainer,
+          iconColorOnHover: Theme.of(context).colorScheme.onPrimary,
+          onPressed: canZoomOut ? () => _setScale(_scaleFactor - 0.1) : null,
+        ),
+        const HSpace(8),
+        FlowyText.medium(
+          '${(_scaleFactor * 100).round()}%',
+          fontSize: 14,
+        ),
+        const HSpace(8),
+        FlowyIconButton(
+          key: const Key('ZoomIncreaseButton'),
+          width: 24,
+          icon: FlowySvg(
+            FlowySvgs.add_s,
+            color: Theme.of(context).iconTheme.color,
+            size: const Size.square(20),
+          ),
+          hoverColor: Theme.of(context).colorScheme.secondaryContainer,
+          iconColorOnHover: Theme.of(context).colorScheme.onPrimary,
+          onPressed: canZoomIn ? () => _setScale(_scaleFactor + 0.1) : null,
+        ),
+        const HSpace(8),
+      ],
+    );
+  }
+
+  Future<void> _setScale(double value) async {
+    final scaleFactor = double.parse(
+      value
+          .clamp(
+            WindowSizeManager.minScaleFactor,
+            WindowSizeManager.maxScaleFactor,
+          )
+          .toStringAsFixed(2),
+    );
+
+    await applyAppScaleFactor(scaleFactor);
+
+    if (mounted) {
+      setState(() => _scaleFactor = scaleFactor);
+    }
   }
 }
 
