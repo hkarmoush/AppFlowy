@@ -1302,90 +1302,62 @@ class _SelectionColorValueWidget extends StatelessWidget {
   }
 }
 
-class _AppZoomSetting extends StatefulWidget {
+class _AppZoomSetting extends StatelessWidget {
   const _AppZoomSetting();
 
   @override
-  State<_AppZoomSetting> createState() => _AppZoomSettingState();
-}
-
-class _AppZoomSettingState extends State<_AppZoomSetting> {
-  final windowSizeManager = WindowSizeManager();
-
-  double _scaleFactor = 1.0;
-
-  @override
-  void initState() {
-    super.initState();
-    // appflowyScaleFactor isn't seeded from persisted storage at startup, so
-    // read the persisted value first, then stay in sync with any further
-    // changes (e.g. from the zoom hotkeys) via the notifier below.
-    windowSizeManager.getScaleFactor().then((value) {
-      if (value != _scaleFactor && mounted) {
-        setState(() => _scaleFactor = value);
-      }
-    });
-    appflowyScaleFactor.addListener(_onAppScaleFactorChanged);
-  }
-
-  @override
-  void dispose() {
-    appflowyScaleFactor.removeListener(_onAppScaleFactorChanged);
-    super.dispose();
-  }
-
-  void _onAppScaleFactorChanged() {
-    if (mounted) {
-      setState(() => _scaleFactor = appflowyScaleFactor.value);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final canZoomOut = _scaleFactor > WindowSizeManager.minScaleFactor;
-    final canZoomIn = _scaleFactor < WindowSizeManager.maxScaleFactor;
+    return ValueListenableBuilder<double>(
+      valueListenable: appflowyScaleFactor,
+      builder: (context, scaleFactor, _) {
+        final canZoomOut = scaleFactor > WindowSizeManager.minScaleFactor;
+        final canZoomIn = scaleFactor < WindowSizeManager.maxScaleFactor;
 
-    return SettingListTile(
-      label: LocaleKeys.settings_workspacePage_appZoom_label.tr(),
-      resetButtonKey: const Key('ZoomResetButton'),
-      onResetRequested: () => _setScale(1.0),
-      trailing: [
-        FlowyIconButton(
-          key: const Key('ZoomDecreaseButton'),
-          width: 24,
-          icon: FlowySvg(
-            FlowySvgs.minus_s,
-            color: Theme.of(context).iconTheme.color,
-            size: const Size.square(20),
-          ),
-          hoverColor: Theme.of(context).colorScheme.secondaryContainer,
-          iconColorOnHover: Theme.of(context).colorScheme.onPrimary,
-          onPressed: canZoomOut ? () => _setScale(_scaleFactor - 0.1) : null,
-        ),
-        const HSpace(8),
-        FlowyText.medium(
-          '${(_scaleFactor * 100).round()}%',
-          fontSize: 14,
-        ),
-        const HSpace(8),
-        FlowyIconButton(
-          key: const Key('ZoomIncreaseButton'),
-          width: 24,
-          icon: FlowySvg(
-            FlowySvgs.add_s,
-            color: Theme.of(context).iconTheme.color,
-            size: const Size.square(20),
-          ),
-          hoverColor: Theme.of(context).colorScheme.secondaryContainer,
-          iconColorOnHover: Theme.of(context).colorScheme.onPrimary,
-          onPressed: canZoomIn ? () => _setScale(_scaleFactor + 0.1) : null,
-        ),
-        const HSpace(8),
-      ],
+        return SettingListTile(
+          label: LocaleKeys.settings_workspacePage_appZoom_label.tr(),
+          resetButtonKey: const Key('ZoomResetButton'),
+          onResetRequested: () => applyAppScaleFactor(1.0),
+          trailing: [
+            FlowyIconButton(
+              key: const Key('ZoomDecreaseButton'),
+              width: 24,
+              icon: FlowySvg(
+                FlowySvgs.minus_s,
+                color: Theme.of(context).iconTheme.color,
+                size: const Size.square(20),
+              ),
+              hoverColor: Theme.of(context).colorScheme.secondaryContainer,
+              iconColorOnHover: Theme.of(context).colorScheme.onPrimary,
+              onPressed: canZoomOut
+                  ? () => applyAppScaleFactor(scaleFactor - 0.1)
+                  : null,
+            ),
+            const HSpace(8),
+            FlowyText.medium(
+              '${(scaleFactor * 100).round()}%',
+              fontSize: 14,
+            ),
+            const HSpace(8),
+            FlowyIconButton(
+              key: const Key('ZoomIncreaseButton'),
+              width: 24,
+              icon: FlowySvg(
+                FlowySvgs.add_s,
+                color: Theme.of(context).iconTheme.color,
+                size: const Size.square(20),
+              ),
+              hoverColor: Theme.of(context).colorScheme.secondaryContainer,
+              iconColorOnHover: Theme.of(context).colorScheme.onPrimary,
+              onPressed: canZoomIn
+                  ? () => applyAppScaleFactor(scaleFactor + 0.1)
+                  : null,
+            ),
+            const HSpace(8),
+          ],
+        );
+      },
     );
   }
-
-  Future<void> _setScale(double value) => applyAppScaleFactor(value);
 }
 
 class DocumentPaddingSetting extends StatelessWidget {
