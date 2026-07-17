@@ -1317,11 +1317,27 @@ class _AppZoomSettingState extends State<_AppZoomSetting> {
   @override
   void initState() {
     super.initState();
+    // appflowyScaleFactor isn't seeded from persisted storage at startup, so
+    // read the persisted value first, then stay in sync with any further
+    // changes (e.g. from the zoom hotkeys) via the notifier below.
     windowSizeManager.getScaleFactor().then((value) {
       if (value != _scaleFactor && mounted) {
         setState(() => _scaleFactor = value);
       }
     });
+    appflowyScaleFactor.addListener(_onAppScaleFactorChanged);
+  }
+
+  @override
+  void dispose() {
+    appflowyScaleFactor.removeListener(_onAppScaleFactorChanged);
+    super.dispose();
+  }
+
+  void _onAppScaleFactorChanged() {
+    if (mounted) {
+      setState(() => _scaleFactor = appflowyScaleFactor.value);
+    }
   }
 
   @override
@@ -1369,22 +1385,7 @@ class _AppZoomSettingState extends State<_AppZoomSetting> {
     );
   }
 
-  Future<void> _setScale(double value) async {
-    final scaleFactor = double.parse(
-      value
-          .clamp(
-            WindowSizeManager.minScaleFactor,
-            WindowSizeManager.maxScaleFactor,
-          )
-          .toStringAsFixed(2),
-    );
-
-    await applyAppScaleFactor(scaleFactor);
-
-    if (mounted) {
-      setState(() => _scaleFactor = scaleFactor);
-    }
-  }
+  Future<void> _setScale(double value) => applyAppScaleFactor(value);
 }
 
 class DocumentPaddingSetting extends StatelessWidget {

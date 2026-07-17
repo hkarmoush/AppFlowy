@@ -69,11 +69,11 @@ class _DisplaySizeSettingState extends State<DisplaySizeSetting> {
   }
 
   Future<void> _setScale(double value) async {
-    await applyAppScaleFactor(value);
     if (mounted) {
       setState(() {
         scaleFactor = value;
       });
     }
+    await applyAppScaleFactor(value);
   }
 }
