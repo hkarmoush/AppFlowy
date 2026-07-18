@@ -171,8 +171,10 @@ impl EventIntegrationTest {
   }
 
   /// Create orphan views in the folder.
-  /// Orphan view: the parent_view_id equal to the view_id
-  /// Normally, the orphan view will be created in nested database
+  /// Orphan view: defaults to a parent_view_id equal to the view_id.
+  /// Normally, the orphan view will be created in nested database.
+  /// Use `create_orphan_view_with_parent` instead if the orphan needs to report
+  /// a real parent (e.g. for ancestor-chain/breadcrumb resolution).
   pub async fn create_orphan_view(&self, name: &str, view_id: &str, layout: ViewLayoutPB) {
     self
       .create_orphan_view_with_parent(name, view_id, None, layout)
