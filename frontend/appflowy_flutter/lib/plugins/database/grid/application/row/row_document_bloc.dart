@@ -95,9 +95,12 @@ class RowDocumentBloc extends Bloc<RowDocumentEvent, RowDocumentState> {
     );
   }
 
-  Future<ViewPB?> _createRowDocumentView(String documentViewId) async {
+  // `rowDocumentViewId` is the id of the row's own document view (becomes the
+  // orphan view's view_id); `viewId` (the bloc's field) is the database view
+  // and is passed as the orphan's parent_view_id for breadcrumb resolution.
+  Future<ViewPB?> _createRowDocumentView(String rowDocumentViewId) async {
     final result = await ViewBackendService.createOrphanView(
-      viewId: documentViewId,
+      viewId: rowDocumentViewId,
       name: LocaleKeys.menuAppHeader_defaultNewPageName.tr(),
       desc: '',
       layoutType: ViewLayoutPB.Document,
