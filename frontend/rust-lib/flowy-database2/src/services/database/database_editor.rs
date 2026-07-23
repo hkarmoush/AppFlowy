@@ -1405,7 +1405,7 @@ impl DatabaseEditor {
   /// Moves a calendar event to `new_timestamp`. If the event's date cell spans a range
   /// (start + end date), the end date is shifted by the same amount as the start date so the
   /// event keeps its original duration, instead of collapsing to a single day.
-  #[tracing::instrument(level = "trace", skip_all)]
+  #[tracing::instrument(level = "trace", skip_all, err)]
   pub async fn move_calendar_event(
     &self,
     view_id: &str,
