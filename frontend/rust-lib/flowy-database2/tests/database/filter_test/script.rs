@@ -143,11 +143,16 @@ impl DatabaseFilterTest {
     let old_cell = self.editor.get_cell(&field.id, &row_id).await;
     let new_cell = apply_cell_changeset(
       BoxAny::new(SelectOptionCellChangeset::from_insert_option_id(&option_id)),
-      old_cell,
+      old_cell.clone(),
       &field,
       Some(self.editor.cell_cache.clone()),
     )
     .unwrap();
+    assert_ne!(
+      Some(new_cell.clone()),
+      old_cell,
+      "sync test helper produced a no-op cell change"
+    );
 
     self
       .editor

@@ -77,6 +77,10 @@ pub(crate) async fn observe_rows_change(
               // Required for remote (synced) cell changes, which never go through
               // DatabaseEditor::did_update_row. Redundant-but-harmless on local edits (the
               // Dart RowList applies duplicate show/hide notifications idempotently).
+              // Cheap even with many views: filter_controller/sort_controller only spawn
+              // a recompute task when they actually hold filters/sorts (see their
+              // `did_receive_row_changed`), and the calculation controller looks up the
+              // field's calculation before doing any work.
               for view_editor in database_editor.database_views.editors().await {
                 view_editor
                   .v_did_update_row_from_sync(row_id.clone(), field_id.clone())
